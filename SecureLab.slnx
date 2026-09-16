@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SecureLab/SecureLab.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SecureLab.Tests/SecureLab.Tests.csproj" />
+  </Folder>
+</Solution>
