@@ -4,6 +4,6 @@ public class GreetingService
 {
     public string GetGreeting()
     {
-        return "SecureLab is running.";
+        return "SecureLab CI/CD is running.";
     }
 }

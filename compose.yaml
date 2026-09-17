@@ -4,4 +4,4 @@ services:
       context: ./src/SecureLab
     image: securelab:dev
     ports:
-      - "8080:8080"
+      - "8081:8080"
