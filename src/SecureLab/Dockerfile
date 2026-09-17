@@ -17,5 +17,9 @@ ENV ASPNETCORE_HTTP_PORTS=8080
 
 EXPOSE 8080
 
+RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
+
+USER appuser
+
 ENTRYPOINT ["dotnet","SecureLab.dll"]
 
