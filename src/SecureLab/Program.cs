@@ -7,4 +7,4 @@ var greetingService = new GreetingService();
 
 app.MapGet("/", () => greetingService.GetGreeting());
 
-app.Run();
+await app.RunAsync();
