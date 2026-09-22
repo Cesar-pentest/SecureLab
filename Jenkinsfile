@@ -11,7 +11,7 @@ pipeline {
                     echo "Waiting for SonarQube to become healthy..."
 
                     for i in $(seq 1 60); do
-                        STATUS=$(docker inspect --format='{{.State.Health.Status}}' securelab-sonarqube-1 2>/dev/null || true)
+                        STATUS=$(docker inspect --format='{{.State.Health.Status}}' securelab-pipeline-sonarqube-1 2>/dev/null || true)
 
                         echo "SonarQube health: $STATUS"
 
