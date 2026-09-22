@@ -1,4 +1,9 @@
 services:
+  sonarqube:
+    image: sonarqube:community
+    ports: 
+      - "9000:9000"
+
   securelab:
     build:
       context: ./src/SecureLab
