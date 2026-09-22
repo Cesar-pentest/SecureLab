@@ -3,38 +3,40 @@ pipeline {
 
     stages {
 
-        stage('Infrastructure') {
-            steps {
-                sh '''
-                    docker compose up -d sonarqube
+     stage('Infrastructure') {
+    steps {
+        sh '''
+            docker compose up -d sonarqube
 
-                    echo "Waiting for SonarQube to become healthy..."
+            echo "Waiting for SonarQube to become healthy..."
 
-                    for i in $(seq 1 60); do
-                        STATUS=$(docker inspect --format='{{.State.Health.Status}}' securelab-pipeline-sonarqube-1 2>/dev/null || true)
+            CONTAINER_ID=$(docker compose ps -q sonarqube)
 
-                        echo "SonarQube health: $STATUS"
+            for i in $(seq 1 60); do
+                STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER_ID")
 
-                        if [ "$STATUS" = "healthy" ]; then
-                            echo "SonarQube is healthy."
-                            break
-                        fi
+                echo "SonarQube health: $STATUS"
 
-                        if [ "$STATUS" = "unhealthy" ]; then
-                            echo "SonarQube became unhealthy."
-                            exit 1
-                        fi
+                if [ "$STATUS" = "healthy" ]; then
+                    echo "SonarQube is healthy."
+                    break
+                fi
 
-                        sleep 5
-                    done
+                if [ "$STATUS" = "unhealthy" ]; then
+                    echo "SonarQube became unhealthy."
+                    exit 1
+                fi
 
-                    if [ "$STATUS" != "healthy" ]; then
-                        echo "SonarQube did not become healthy in time."
-                        exit 1
-                    fi
-                '''
-            }
-        }
+                sleep 5
+            done
+
+            if [ "$STATUS" != "healthy" ]; then
+                echo "SonarQube did not become healthy in time."
+                exit 1
+            fi
+        '''
+    }
+}
 
         stage('Build') {
             steps {
