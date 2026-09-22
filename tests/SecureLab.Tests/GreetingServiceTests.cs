@@ -11,7 +11,7 @@ public class GreetingServiceTests
 
         var result = service.GetGreeting();
 
-        Assert.Equal("SecureLab CI/CD is running.",result);
+        Assert.Equal("SecureLab CI/CD is healthy.",result);
 
     }
 }
