@@ -1,3 +1,5 @@
+name: securelab
+
 services:
 
   sonarqube:
