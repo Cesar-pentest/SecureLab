@@ -44,23 +44,24 @@ pipeline {
             }
         }
 
-        stage('SAST Begin') {
-            steps {
-                withCredentials([
-                    string(
-                        credentialsId: 'LaultimaPorFavor',
-                        variable: 'SONAR_TOKEN'
-                    )
-                ]) {
-                    sh '''
-                        dotnet tool run dotnet-sonarscanner begin \
-                            /k:"SecureLab" \
-                            /d:sonar.host.url="http://localhost:9000" \
-                            /d:sonar.token="$SONAR_TOKEN"
-                    '''
-                }
-            }
+stage('SAST Begin') {
+    steps {
+        withCredentials([
+            string(
+                credentialsId: 'LaultimaPorFavor',
+                variable: 'SONAR_TOKEN'
+            )
+        ]) {
+            sh '''
+                dotnet tool run dotnet-sonarscanner begin \
+                    /k:"SecureLab" \
+                    /d:sonar.host.url="http://localhost:9000" \
+                    /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+                    /d:sonar.token="$SONAR_TOKEN"
+            '''
         }
+    }
+}
 
         stage('Build') {
             steps {
