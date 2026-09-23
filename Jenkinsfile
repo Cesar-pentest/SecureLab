@@ -37,6 +37,12 @@ pipeline {
         '''
     }
 }
+        stage('Tools'){
+            steps{
+                sh 'dotnet tool restore'
+                sh 'dotnet tool run dotnet-sonarscanner --version'
+            }
+        }
 
         stage('Build') {
             steps {
