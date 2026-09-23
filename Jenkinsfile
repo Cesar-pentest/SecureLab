@@ -1,59 +1,67 @@
+```groovy
 pipeline {
     agent any
 
     stages {
 
-     stage('Infrastructure') {
-    steps {
-        sh '''
-            docker compose up -d sonarqube
+        stage('Infrastructure') {
+            steps {
+                sh '''
+                    docker compose up -d sonarqube
 
-            echo "Waiting for SonarQube to become healthy..."
+                    echo "Waiting for SonarQube to become healthy..."
 
-            CONTAINER_ID=$(docker compose ps -q sonarqube)
+                    CONTAINER_ID=$(docker compose ps -q sonarqube)
 
-            for i in $(seq 1 60); do
-                STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER_ID")
+                    for i in $(seq 1 60); do
+                        STATUS=$(docker inspect --format='{{.State.Health.Status}}' "$CONTAINER_ID")
 
-                echo "SonarQube health: $STATUS"
+                        echo "SonarQube health: $STATUS"
 
-                if [ "$STATUS" = "healthy" ]; then
-                    echo "SonarQube is healthy."
-                    break
-                fi
+                        if [ "$STATUS" = "healthy" ]; then
+                            echo "SonarQube is healthy."
+                            break
+                        fi
 
-                if [ "$STATUS" = "unhealthy" ]; then
-                    echo "SonarQube became unhealthy."
-                    exit 1
-                fi
+                        if [ "$STATUS" = "unhealthy" ]; then
+                            echo "SonarQube became unhealthy."
+                            exit 1
+                        fi
 
-                sleep 5
-            done
+                        sleep 5
+                    done
 
-            if [ "$STATUS" != "healthy" ]; then
-                echo "SonarQube did not become healthy in time."
-                exit 1
-            fi
-        '''
-    }
-}
-        stage('Tools'){
-            steps{
+                    if [ "$STATUS" != "healthy" ]; then
+                        echo "SonarQube did not become healthy in time."
+                        exit 1
+                    fi
+                '''
+            }
+        }
+
+        stage('Tools') {
+            steps {
                 sh 'dotnet tool restore'
             }
         }
+
         stage('SAST Begin') {
             steps {
-        withCredentials([string(credentialsId: 'LaultimaPorFavor', variable: 'SONAR_TOKEN')]) {
-            sh '''
-                dotnet tool run dotnet-sonarscanner begin \
-                    /k:"SecureLab" \
-                    /d:sonar.host.url="http://localhost:9000" \
-                    /d:sonar.token="$SONAR_TOKEN"
-            '''
+                withCredentials([
+                    string(
+                        credentialsId: 'LaultimaPorFavor',
+                        variable: 'SONAR_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        dotnet tool run dotnet-sonarscanner begin \
+                            /k:"SecureLab" \
+                            /d:sonar.host.url="http://localhost:9000" \
+                            /d:sonar.token="$SONAR_TOKEN"
+                    '''
+                }
+            }
         }
-    }
-}
 
         stage('Build') {
             steps {
@@ -66,26 +74,51 @@ pipeline {
             steps {
                 sh '''
                     dotnet test SecureLab.slnx --no-build \
-                    --collect:"XPlat Code Coverage" \
-                    -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+                        --collect:"XPlat Code Coverage" \
+                        -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
                 '''
             }
         }
+
         stage('SCA') {
-    steps {
-        sh 'dotnet list SecureLab.slnx package --vulnerable --include-transitive'
-    }
-}
+            steps {
+                sh 'dotnet list SecureLab.slnx package --vulnerable --include-transitive'
+            }
+        }
+
+        stage('Gitleaks') {
+            steps {
+                sh 'gitleaks detect --source . --verbose'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker compose build securelab'
+            }
+        }
+
+        stage('Container Scan') {
+            steps {
+                sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:dev'
+            }
+        }
 
         stage('SAST End') {
-    steps {
-        withCredentials([string(credentialsId: 'LaultimaPorFavor', variable: 'SONAR_TOKEN')]) {
-            sh '''
-                dotnet tool run dotnet-sonarscanner end \
-                    /d:sonar.token="$SONAR_TOKEN"
-            '''
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'LaultimaPorFavor',
+                        variable: 'SONAR_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        dotnet tool run dotnet-sonarscanner end \
+                            /d:sonar.token="$SONAR_TOKEN"
+                    '''
+                }
+            }
         }
     }
 }
-    }
-}
+```
