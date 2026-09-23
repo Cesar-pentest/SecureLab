@@ -42,6 +42,18 @@ pipeline {
                 sh 'dotnet tool restore'
             }
         }
+        stage('SAST Begin') {
+            steps {
+        withCredentials([string(credentialsId: 'LaultimaPorFavor', variable: 'SONAR_TOKEN')]) {
+            sh '''
+                dotnet tool run dotnet-sonarscanner begin \
+                    /k:"SecureLab" \
+                    /d:sonar.host.url="http://localhost:9000" \
+                    /d:sonar.token="$SONAR_TOKEN"
+            '''
+        }
+    }
+}
 
         stage('Build') {
             steps {
@@ -59,5 +71,15 @@ pipeline {
                 '''
             }
         }
+        stage('SAST End') {
+    steps {
+        withCredentials([string(credentialsId: 'LaultimaPorFavor', variable: 'SONAR_TOKEN')]) {
+            sh '''
+                dotnet tool run dotnet-sonarscanner end \
+                    /d:sonar.token="$SONAR_TOKEN"
+            '''
+        }
+    }
+}
     }
 }
