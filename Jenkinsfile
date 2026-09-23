@@ -71,6 +71,12 @@ pipeline {
                 '''
             }
         }
+        stage('SCA') {
+    steps {
+        sh 'dotnet list SecureLab.slnx package --vulnerable --include-transitive'
+    }
+}
+
         stage('SAST End') {
     steps {
         withCredentials([string(credentialsId: 'LaultimaPorFavor', variable: 'SONAR_TOKEN')]) {
