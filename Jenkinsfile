@@ -106,19 +106,21 @@ pipeline {
 
         stage('SAST End') {
             steps {
-                withCredentials([
-                    string(
-                        credentialsId: 'LaultimaPorFavor',
-                        variable: 'SONAR_TOKEN'
-                    )
-                ]) {
-                    sh '''
-                        dotnet tool run dotnet-sonarscanner end \
+                withSonarQubeEnv('SecureLabCodeTesting') {
+                    withCredentials([
+                        string(
+                            credentialsId: 'LaultimaPorFavor',
+                            variable: 'SONAR_TOKEN'
+                            )
+                            ]){
+                            sh '''
+                            dotnet tool run dotnet-sonarscanner end \
                             /d:sonar.token="$SONAR_TOKEN"
-                    '''
-                }
-            }
-        }
+                            '''
+                                }
+                            }
+                        }
+                    }
 
         stage('Quality Gate') {
             steps {
