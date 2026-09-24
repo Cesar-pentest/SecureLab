@@ -85,12 +85,15 @@ pipeline {
         stage('SCA') {
             steps {
                 sh '''
-                trap 'rm -f sca-result.json' EXIT
+                    trap 'rm -f sca-result.json' EXIT
 
+                    dotnet list SecureLab.slnx package \
+                        --vulnerable \
+                        --include-transitive \
+                        --format json \
+                        > sca-result.json
 
-                dotnet list SecureLab.slnx package --vulnerable --include-transitive --format json > sca-result.json
-
-                python3 scripts/sca-gate.py sca-result.json
+                    python3 scripts/sca-gate.py sca-result.json
                 '''
             }
         }
@@ -112,11 +115,6 @@ pipeline {
                 sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:dev'
             }
         }
-        stage('Deploy') {
-            steps{
-                sh 'docker compose up -d securelab'
-            }
-        }
 
         stage('SAST End') {
             steps {
@@ -125,22 +123,28 @@ pipeline {
                         string(
                             credentialsId: 'LaultimaPorFavor',
                             variable: 'SONAR_TOKEN'
-                            )
-                            ]){
-                            sh '''
+                        )
+                    ]) {
+                        sh '''
                             dotnet tool run dotnet-sonarscanner end \
-                            /d:sonar.token="$SONAR_TOKEN"
-                            '''
-                                }
-                            }
-                        }
+                                /d:sonar.token="$SONAR_TOKEN"
+                        '''
                     }
+                }
+            }
+        }
 
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker compose up -d securelab'
             }
         }
     }
