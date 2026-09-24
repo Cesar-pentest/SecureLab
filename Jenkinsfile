@@ -73,6 +73,8 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
+                    rm -rf tests/SecureLab.Tests/TestResults
+
                     dotnet test SecureLab.slnx --no-build \
                         --collect:"XPlat Code Coverage" \
                         -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
