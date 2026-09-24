@@ -84,7 +84,14 @@ pipeline {
 
         stage('SCA') {
             steps {
-                sh 'dotnet list SecureLab.slnx package --vulnerable --include-transitive'
+                sh '''
+                trap 'rm -f sca-result.json' EXIT
+
+
+                dotnet list SecureLab.slnx package --vulnerable --include-transitive --format json > sca-result.json
+
+                python3 scripts/sca-gate.py sca-result.json
+                '''
             }
         }
 
