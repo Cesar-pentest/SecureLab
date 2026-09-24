@@ -57,7 +57,6 @@ pipeline {
                             /k:"SecureLab" \
                             /d:sonar.host.url="http://localhost:9000" \
                             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
-                            /d:sonar.tests="tests/SecureLab.Tests" \
                             /d:sonar.token="$SONAR_TOKEN"
                     '''
                 }
