@@ -4,6 +4,8 @@ services:
 
   sonarqube:
     image: sonarqube:community
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "9000:9000"
     volumes:
