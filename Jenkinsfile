@@ -112,6 +112,11 @@ pipeline {
                 sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:dev'
             }
         }
+        stage('Deploy') {
+            steps{
+                sh 'docker compose up -d securelab'
+            }
+        }
 
         stage('SAST End') {
             steps {
