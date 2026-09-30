@@ -149,7 +149,7 @@ pipeline {
         }
         stage('Smoke Test'){
             steps{
-                sh 'curl --fail http://localhost:8081g'
+                sh 'curl --fail http://localhost:8081'
             }
         }
         stage('DAST') {
