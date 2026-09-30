@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY ["SecureLab.csproj","."]
-RUN dotnet restore
+UN dotnet restoreR
 
 COPY . .
 RUN dotnet publish -c Release -o /app/publish

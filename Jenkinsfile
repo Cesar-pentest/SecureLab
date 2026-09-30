@@ -147,5 +147,28 @@ pipeline {
                 sh 'docker compose up -d securelab'
             }
         }
+        stage('Smoke Test'){
+            steps{
+                sh 'curl --fail http://localhost:8081g'
+            }
+        }
+        stage('DAST') {
+            steps {
+                sh '''
+                    rm -rf zap-output
+                    mkdir -p zap-output
+                    chmod 777 zap-output
+
+                    docker run --rm \
+                  --network securelab_default \
+                    -v "$PWD/zap-output:/zap/wrk/:rw" \
+                    ghcr.io/zaproxy/zaproxy:stable \
+                    zap-baseline.py \
+                    -t http://securelab:8080 \
+                    -r zap-report.html \
+                    -I
+                    '''
+            }
+        }
     }
 }
