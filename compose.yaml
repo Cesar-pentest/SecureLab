@@ -19,7 +19,7 @@ services:
       retries: 30
       start_period: 30s
 
-  securelab:
+  securelab-staging:
     build:
       context: ./src/SecureLab
     image: securelab:dev

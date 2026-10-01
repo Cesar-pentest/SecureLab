@@ -106,7 +106,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker compose build securelab'
+                sh 'docker compose build securelab-staging'
             }
         }
 
@@ -144,7 +144,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                sh 'docker compose up -d securelab'
+                sh 'docker compose up -d securelab-staging'
             }
         }
         stage('Smoke Test'){
@@ -164,7 +164,7 @@ pipeline {
                     -v "$PWD/zap-output:/zap/wrk/:rw" \
                     ghcr.io/zaproxy/zaproxy:stable \
                     zap-baseline.py \
-                    -t http://securelab:8080 \
+                    -t http://securelab-staging:8080 \
                     -r zap-report.html \
                     -I
                     '''
