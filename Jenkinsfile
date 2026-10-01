@@ -171,4 +171,10 @@ pipeline {
             }
         }
     }
+    post {
+        always {
+            archiveArtifacts artifacts: 'zap-output/zap-report.html',
+                             allowEmptyArchive: true
+        }
+    }
 }
