@@ -115,7 +115,7 @@ pipeline {
 
         stage('Container Scan') {
             steps {
-                sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:dev'
+                sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:${IMAGE_TAG}'
             }
         }
 
