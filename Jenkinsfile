@@ -3,7 +3,9 @@ pipeline {
     
     environment {
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-    }
+        ACR_LOGIN_SERVER = "securelabacr.azurecr.io"
+     }
+
     stages {
 
         stage('Infrastructure') {
@@ -118,6 +120,31 @@ pipeline {
                 sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:${IMAGE_TAG}'
             }
         }
+        stage('Push to Azure Container Registry') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                credentialsId: 'securelab-azure-sp',
+                usernameVariable: 'AZURE_CLIENT_ID',
+                passwordVariable: 'AZURE_CLIENT_SECRET'
+            )
+        ]) {
+            sh '''
+                echo "$AZURE_CLIENT_SECRET" | docker login \
+                    "$ACR_LOGIN_SERVER" \
+                    --username "$AZURE_CLIENT_ID" \
+                    --password-stdin
+
+                docker tag \
+                    "securelab:${IMAGE_TAG}" \
+                    "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
+
+                docker push \
+                    "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
+            '''
+        }
+    }
+}
 
         stage('SAST End') {
             steps {
