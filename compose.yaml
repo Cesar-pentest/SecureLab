@@ -22,7 +22,7 @@ services:
   securelab-staging:
     build:
       context: ./src/SecureLab
-    image: securelab:dev
+    image: securelab:${IMAGE_TAG:-dev}
     ports:
       - "8081:8080"
 

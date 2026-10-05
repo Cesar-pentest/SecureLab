@@ -1,6 +1,9 @@
 pipeline {
     agent any
-
+    
+    environment {
+        IMAGE_TAG = "build-${BUILD_NUMBER}"
+    }
     stages {
 
         stage('Infrastructure') {
