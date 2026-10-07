@@ -145,6 +145,32 @@ pipeline {
         }
     }
 }
+
+        stage('SAST End') {
+            steps {
+                withSonarQubeEnv('SecureLabCodeTesting') {
+                    withCredentials([
+                        string(
+                            credentialsId: 'LaultimaPorFavor',
+                            variable: 'SONAR_TOKEN'
+                        )
+                    ]) {
+                        sh '''
+                            dotnet tool run dotnet-sonarscanner end \
+                                /d:sonar.token="$SONAR_TOKEN"
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
 stage('Deploy to Azure Container Apps') {
     steps {
         withCredentials([
@@ -172,33 +198,6 @@ stage('Deploy to Azure Container Apps') {
         }
     }
 }
-
-        stage('SAST End') {
-            steps {
-                withSonarQubeEnv('SecureLabCodeTesting') {
-                    withCredentials([
-                        string(
-                            credentialsId: 'LaultimaPorFavor',
-                            variable: 'SONAR_TOKEN'
-                        )
-                    ]) {
-                        sh '''
-                            dotnet tool run dotnet-sonarscanner end \
-                                /d:sonar.token="$SONAR_TOKEN"
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-
         stage('Deploy') {
             steps {
                 sh 'docker compose up -d securelab-staging'
