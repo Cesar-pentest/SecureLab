@@ -216,11 +216,10 @@ stage('Deploy to Azure Container Apps') {
                     chmod 777 zap-output
 
                     docker run --rm \
-                  --network securelab_default \
                     -v "$PWD/zap-output:/zap/wrk/:rw" \
                     ghcr.io/zaproxy/zaproxy:stable \
                     zap-baseline.py \
-                    -t http://securelab-staging:8080 \
+                    -t https://securelab.kindwater-fcd4aaef.spaincentral.azurecontainerapps.io \
                     -r zap-report.html \
                     -I
                     '''
