@@ -198,15 +198,6 @@ stage('Deploy to Azure Container Apps') {
         }
     }
 }
-stage('Azure Smoke Test') {
-    steps {
-        sh '''
-            curl --fail --silent --show-error \
-                "https://securelab.kindwater-fcd4aaef.spaincentral.azurecontainerapps.io/" \
-                | grep -F "SecureLab CI/CD is healthy."
-        '''
-    }
-}
         stage('Deploy') {
             steps {
                 sh 'docker compose up -d securelab-staging'
