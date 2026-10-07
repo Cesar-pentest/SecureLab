@@ -145,6 +145,32 @@ pipeline {
         }
     }
 }
+stage('Azure Authentication Test') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'securelab-deployer',
+                usernameVariable: 'AZURE_CLIENT_ID',
+                passwordVariable: 'AZURE_CLIENT_SECRET'
+            )
+        ]) {
+            sh '''
+                az login \
+                    --service-principal \
+                    --username "$AZURE_CLIENT_ID" \
+                    --password "$AZURE_CLIENT_SECRET" \
+                    --tenant "d44b8214-c8f3-436d-be12-d6931c1f1555" \
+                    --output none
+
+                az account show \
+                    --query "{name:name,state:state}" \
+                    --output table
+
+                az logout
+            '''
+        }
+    }
+}
 
         stage('SAST End') {
             steps {
