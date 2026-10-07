@@ -481,3 +481,10 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 zap-output/
+
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.*
+terraform/*.tfvars
+terraform/*.tfvars.json
