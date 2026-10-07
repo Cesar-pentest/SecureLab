@@ -145,7 +145,7 @@ pipeline {
         }
     }
 }
-stage('Azure Authentication Test') {
+stage('Deploy to Azure Container Apps') {
     steps {
         withCredentials([
             usernamePassword(
@@ -162,9 +162,10 @@ stage('Azure Authentication Test') {
                     --tenant "d44b8214-c8f3-436d-be12-d6931c1f1555" \
                     --output none
 
-                az account show \
-                    --query "{name:name,state:state}" \
-                    --output table
+                az containerapp update \
+                    --name securelab \
+                    --resource-group rg-securelab \
+                    --image "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
 
                 az logout
             '''
