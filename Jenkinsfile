@@ -1,10 +1,10 @@
 pipeline {
     agent any
-    
+
     environment {
         IMAGE_TAG = "build-${BUILD_NUMBER}"
         ACR_LOGIN_SERVER = "securelabacr.azurecr.io"
-     }
+    }
 
     stages {
 
@@ -115,37 +115,6 @@ pipeline {
             }
         }
 
-        stage('Container Scan') {
-            steps {
-                sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:${IMAGE_TAG}'
-            }
-        }
-        stage('Push to Azure Container Registry') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                credentialsId: 'securelab-azure-sp',
-                usernameVariable: 'AZURE_CLIENT_ID',
-                passwordVariable: 'AZURE_CLIENT_SECRET'
-            )
-        ]) {
-            sh '''
-                echo "$AZURE_CLIENT_SECRET" | docker login \
-                    "$ACR_LOGIN_SERVER" \
-                    --username "$AZURE_CLIENT_ID" \
-                    --password-stdin
-
-                docker tag \
-                    "securelab:${IMAGE_TAG}" \
-                    "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
-
-                docker push \
-                    "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
-            '''
-        }
-    }
-}
-
         stage('SAST End') {
             steps {
                 withSonarQubeEnv('SecureLabCodeTesting') {
@@ -171,43 +140,77 @@ pipeline {
                 }
             }
         }
-stage('Deploy to Azure Container Apps') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'securelab-deployer',
-                usernameVariable: 'AZURE_CLIENT_ID',
-                passwordVariable: 'AZURE_CLIENT_SECRET'
-            )
-        ]) {
-            sh '''
-                az login \
-                    --service-principal \
-                    --username "$AZURE_CLIENT_ID" \
-                    --password "$AZURE_CLIENT_SECRET" \
-                    --tenant "d44b8214-c8f3-436d-be12-d6931c1f1555" \
-                    --output none
 
-                az containerapp update \
-                    --name securelab \
-                    --resource-group rg-securelab \
-                    --image "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
-
-                az logout
-            '''
-        }
-    }
-}
-        stage('Deploy') {
+        stage('Container Scan') {
             steps {
-                sh 'docker compose up -d securelab-staging'
+                sh 'trivy image --severity HIGH,CRITICAL --exit-code 1 securelab:${IMAGE_TAG}'
             }
         }
-        stage('Smoke Test'){
-            steps{
-                sh 'curl --fail http://localhost:8081'
+
+        stage('Push to Azure Container Registry') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'securelab-azure-sp',
+                        usernameVariable: 'AZURE_CLIENT_ID',
+                        passwordVariable: 'AZURE_CLIENT_SECRET'
+                    )
+                ]) {
+                    sh '''
+                        echo "$AZURE_CLIENT_SECRET" | docker login \
+                            "$ACR_LOGIN_SERVER" \
+                            --username "$AZURE_CLIENT_ID" \
+                            --password-stdin
+
+                        docker tag \
+                            "securelab:${IMAGE_TAG}" \
+                            "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
+
+                        docker push \
+                            "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
+                    '''
+                }
             }
         }
+
+        stage('Deploy to Azure Container Apps') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'securelab-deployer',
+                        usernameVariable: 'AZURE_CLIENT_ID',
+                        passwordVariable: 'AZURE_CLIENT_SECRET'
+                    )
+                ]) {
+                    sh '''
+                        az login \
+                            --service-principal \
+                            --username "$AZURE_CLIENT_ID" \
+                            --password "$AZURE_CLIENT_SECRET" \
+                            --tenant "d44b8214-c8f3-436d-be12-d6931c1f1555" \
+                            --output none
+
+                        az containerapp update \
+                            --name securelab \
+                            --resource-group rg-securelab \
+                            --image "${ACR_LOGIN_SERVER}/securelab:${IMAGE_TAG}"
+
+                        az logout
+                    '''
+                }
+            }
+        }
+
+        stage('Azure Smoke Test') {
+            steps {
+                sh '''
+                    curl --fail --silent --show-error \
+                        "https://securelab.kindwater-fcd4aaef.spaincentral.azurecontainerapps.io/" \
+                        | grep -F "SecureLab CI/CD is healthy."
+                '''
+            }
+        }
+
         stage('DAST') {
             steps {
                 sh '''
@@ -216,16 +219,17 @@ stage('Deploy to Azure Container Apps') {
                     chmod 777 zap-output
 
                     docker run --rm \
-                    -v "$PWD/zap-output:/zap/wrk/:rw" \
-                    ghcr.io/zaproxy/zaproxy:stable \
-                    zap-baseline.py \
-                    -t https://securelab.kindwater-fcd4aaef.spaincentral.azurecontainerapps.io \
-                    -r zap-report.html \
-                    -I
-                    '''
+                        -v "$PWD/zap-output:/zap/wrk/:rw" \
+                        ghcr.io/zaproxy/zaproxy:stable \
+                        zap-baseline.py \
+                        -t https://securelab.kindwater-fcd4aaef.spaincentral.azurecontainerapps.io \
+                        -r zap-report.html \
+                        -I
+                '''
             }
         }
     }
+
     post {
         always {
             archiveArtifacts artifacts: 'zap-output/zap-report.html',
