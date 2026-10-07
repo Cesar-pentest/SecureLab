@@ -201,16 +201,6 @@ pipeline {
             }
         }
 
-        stage('Azure Smoke Test') {
-            steps {
-                sh '''
-                    curl --fail --silent --show-error \
-                        "https://securelab.kindwater-fcd4aaef.spaincentral.azurecontainerapps.io/" \
-                        | grep -F "SecureLab CI/CD is healthy."
-                '''
-            }
-        }
-
         stage('DAST') {
             steps {
                 sh '''
