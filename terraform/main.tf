@@ -8,10 +8,10 @@ resource "azurerm_resource_group" "securelab" {
 }
 
 resource "azurerm_container_registry" "securelab" {
-  name                = "securelabacr"
-  resource_group_name = "rg-securelab"
-  location            = "spaincentral"
-  sku                 = "Standard"
+  name                          = "securelabacr"
+  resource_group_name           = "rg-securelab"
+  location                      = "spaincentral"
+  sku                           = "Standard"
   public_network_access_enabled = true
 }
 
