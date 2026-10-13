@@ -12,6 +12,7 @@ resource "azurerm_container_registry" "securelab" {
   resource_group_name = "rg-securelab"
   location            = "spaincentral"
   sku                 = "Standard"
+  public_network_access_enabled = true
 }
 
 resource "azurerm_container_app_environment" "securelab" {
