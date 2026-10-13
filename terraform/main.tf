@@ -13,8 +13,8 @@ resource "azurerm_container_registry" "securelab" {
   location                      = "spaincentral"
   sku                           = "Standard"
   public_network_access_enabled = false
-  
-    identity {
+
+  identity {
     type = "SystemAssigned"
   }
 }
