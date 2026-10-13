@@ -49,6 +49,28 @@ pipeline {
             }
         }
 
+        stage('IaC Security') {
+            steps {
+                dir('terraform') {
+                    sh '''
+                        terraform fmt -check
+                        terraform init -backend=false
+                        terraform validate
+                    '''
+                }
+
+                sh '''
+                    mkdir -p reports
+                    /opt/checkov-venv/bin/checkov \
+                        -d terraform/ \
+                        --framework terraform \
+                        --output json \
+                        --output-file-path console,reports/checkov-report.json \
+                        --soft-fail
+                '''
+            }
+        }
+
         stage('SAST Begin') {
             steps {
                 withCredentials([

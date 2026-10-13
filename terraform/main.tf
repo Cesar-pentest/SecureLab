@@ -60,7 +60,7 @@ resource "azurerm_container_app" "securelab" {
     }
   }
 
- template {
+  template {
     min_replicas = 0
     max_replicas = 1
 
@@ -78,7 +78,7 @@ resource "azurerm_container_app" "securelab" {
     ]
   }
 }
-  
+
 resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.securelab.id
   role_definition_name = "AcrPull"
