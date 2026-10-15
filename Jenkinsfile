@@ -134,6 +134,7 @@ pipeline {
         stage('Docker Build') {
             steps {
                 sh 'docker compose build securelab-staging'
+                sh 'trivy image --format cyclonedx --output sbom.json securelab:${IMAGE_TAG}'
             }
         }
 
@@ -244,8 +245,8 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: 'zap-output/zap-report.html',
-                             allowEmptyArchive: true
+            archiveArtifacts artifacts: 'sbom.json,reports/checkov-report.json,zap-output/zap-report.html',
+                         allowEmptyArchive: true
         }
     }
 }
