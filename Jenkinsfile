@@ -133,7 +133,7 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker compose build securelab-staging'
+                sh 'docker compose build --pull securelab-staging'
                 sh 'trivy image --format cyclonedx --output sbom.json securelab:${IMAGE_TAG}'
             }
         }
